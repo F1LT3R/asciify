@@ -1,65 +1,48 @@
-// Currently this just outputs img data.
 
- var fs = require('fs');
- var Canvas = require('canvas')
-  , Image = Canvas.Image
-  , canvas = new Canvas(200,200)
-  , ctx = canvas.getContext('2d');
+var fs  = require('fs')
+  , PNG = require('pngjs').PNG
+  , charWidth = 80
+  , charRamp = "@%#*+=-:. "
+  // , charRamp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
+  , charRampLen = charRamp.length
+  , colorChannels = 3
+  , valuesPerChannel = 255
+  , maxRGB = colorChannels*valuesPerChannel  
+  , rampRatio = charRampLen/(maxRGB+1)
   ;
 
- fs.readFile(__dirname + '/al-everest.png', function(err, pic){
-  if (err) throw err;
-  img = new Image;
-  img.src = pic;
-  ctx.drawImage(img, 0, 0, img.width / 4, img.height / 4);
-  console.log('<img src="' + canvas.toDataURL() + '" />');
+fs.createReadStream('al-everest.png')
+  .pipe(new PNG({ filterType: 4 }))
+  .on('parsed', function() {
+
+    var aspectRatio = this.width/charWidth
+      // , ascii = '<span style="font-family:console;">'
+      , ascii = ''      
+      , x
+      , y
+      ;
+
+    for (y = 0; y < this.height; parseInt(y+=aspectRatio*2)) {
+      for (x = 0; x < this.width; parseInt(x+=aspectRatio)) {
+        
+        var idx = (this.width * y + x) << 2
+          , r = this.data[idx]
+          , g = this.data[idx+1]
+          , b = this.data[idx+2]
+          , a = this.data[idx+3]
+          , brightness = r+g+b
+          ;
+        
+        // ascii += '<span style="color:rgba('+r+','+g+','+b+')">'+charRamp[parseInt(rampRatio*brightness)]+'<span>';
+        ascii += charRamp[parseInt(rampRatio*brightness)];
+
+      }
+      ascii += '\n';
+      // ascii += '<br>\n';
+    }
+    // ascii += '</span>';
+    
+    console.log(ascii);
+    
+    // this.pack().pipe(fs.createWriteStream('out.png'));
 });
-  
-
-
-
-
-
-// STUFF FOR LATER
-
-// process.argv.forEach(function (val, index, array) {
-//   console.log(index + ': ' + val);
-// });
-
-
-// var canvas = require('canvas');
-// console.log(canvas.cairoVersion);
-
-// var Canvas = require('canvas')
-//   , Image = Canvas.Image
-//   , canvas = new Canvas(200,200)
-//   , ctx = canvas.getContext('2d');
-
-// ctx.font = '30px Impact';
-// ctx.rotate(.1);
-// ctx.fillText("Awesome!", 50, 100);
-
-// var te = ctx.measureText('Awesome!');
-// ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-// ctx.beginPath();
-// ctx.lineTo(50, 102);
-// ctx.lineTo(50 + te.width, 102);
-// ctx.stroke();
-
-// console.log('<img src="' + canvas.toDataURL() + '" />');
-
-
-
-// [GET XQuartz] https://xquartz.macosforge.org/landing/
-// [install XQuatrz, log out and in to init xwin]
-// brew install cario
-// export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig
-// [maybe this?:start]
-//    rm /usr/local/lib/libpixman-1.0.21.6.dylib
-//    brew uninstall cairo pixman
-//    brew install pixman cairo
-//    brew link pixman cairo
-//    npm rebuild canvas
-// [maybe this?:end]
-// cp /usr/X11/lib/libfreetype.dylib /usr/local/lib/
-// npm install canvas
