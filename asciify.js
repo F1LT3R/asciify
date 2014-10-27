@@ -1,10 +1,11 @@
 
+
+
 var fs  = require('fs')
   , PNG = require('pngjs').PNG
-  , charWidth = 80
+  , charWidth =80
   // , charRamp = "@%#*+=-:. "
-  // , charRamp = "█▓▒░ "
-  , charRamp = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
+  , charRamp = ("$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'.").split("").reverse().join("")
   , charRampLen = charRamp.length
   , colorChannels = 3
   , valuesPerChannel = 255
@@ -57,26 +58,30 @@ var fs  = require('fs')
 
 
 
-fs.createReadStream('al-everest.png')
+fs.createReadStream('github-octocat.png')
   .pipe(new PNG({
     filterType: 4
   }))
   .on('parsed', function() {
 
     var aspectRatio = this.width/charWidth
-      , ascii = '<style>@import url(http://fonts.googleapis.com/css?family=Source+Code+Pro:300,600);\n\nbody{background:black;font-size:12px;font-family:"Source Code Pro";letter-spacing:-3.5px;line-height:5px;}*{margin:0;padding:0}</style> <span>'
+      , ascii = '<style>\n\n@import url(http://fonts.googleapis.com/css?family=Source+Code+Pro:600);\n\nbody{background:black;-webkit-font-smoothing: antialiased;font-size:12px;font-family:"Source Code Pro";letter-spacing:-3.5px;line-height:5px;}*{margin:0;padding:0}\n\n</style>\n\n <span>'
       // , ascii = ''      
       , thisColor
       , closestColor
       , i
       , x
       , y
+      , charHeight = this.height / aspectRatio
       ;
 
-    for (y = 0; y < this.height; parseInt(y+=aspectRatio)) {
-      for (x = 0; x < this.width; parseInt(x+=aspectRatio)) {
+    console.log(charWidth, charHeight);
 
-        var idx = (this.width * y + x) << 2
+    for (y = 0; y < charHeight; y+=1) {
+      for (x = 0; x < charWidth; x+=1) {
+
+        // var idx = (this.width  * parseInt(y*aspectRatio) + parseInt(x*aspectRatio) ) << 2
+        var idx = (this.width  * parseInt(y*aspectRatio) + parseInt(x*aspectRatio) ) << 2
           , r = this.data[idx]
           , g = this.data[idx+1]
           , b = this.data[idx+2]
@@ -114,11 +119,13 @@ fs.createReadStream('al-everest.png')
         // ascii += charRamp[parseInt(rampRatio*brightness)];
         // ascii += '<span class="asciify-color-'+closestColor+'">'+charRamp[parseInt(rampRatio*brightness)]+'<span> ';
         // ascii += '<span style="color:rgba('+cfc[0]+','+cfc[1]+','+cfc[2]+');">'+charRamp[parseInt(rampRatio*brightness)]+'</span> ';
+        
         ascii += '<span style="color:rgb('+r+','+g+','+b+');">'+charRamp[parseInt(rampRatio*brightness)]+'</span> ';
       }
       // ascii += '\n';
-      ascii += '<br>\n';
+      ascii += '<br> ';
     }
+    
     ascii += '</span>';
     
     // console.log(ascii);
@@ -126,12 +133,13 @@ fs.createReadStream('al-everest.png')
 
     var fs = require('fs');
     fs.writeFile("./test.html", ascii, function(err) {
-        if(err) {
-            console.log(err);
-        } else {
-            console.log("The file was saved!");
-        }
+      if(err) {
+          console.log(err);
+      } else {
+          console.log("The file was saved!");
+      }
     }); 
 
     // this.pack().pipe(fs.createWriteStream('out.png'));
+
 });
